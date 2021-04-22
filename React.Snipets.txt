@@ -1,0 +1,336 @@
+List.js
+
+-----------------------------------------------------
+
+import React from "react"
+import ListItem from "./ListItem"
+import ShoppingCart from "./shoppingCart"
+
+class List extends React.Component{
+    constructor(){
+        super()
+        this.state ={
+            groceryItems:[
+                {id:1 , title: "Ham" , added: false},
+                {id:2 , title: "Cheese", added: false},
+                {id:3 , title: "Bread", added: false},
+                {id:4 , title: "Deoderant", added: false},
+                {id:5 , title: "Beer", added: false}
+            ]
+        }
+        this.handleClick = this.handleClick.bind(this)
+    }
+    
+    handleClick(id){
+    this.setState(prevState => {
+        const newList = prevState.groceryItems.map(item => {
+            if (item.id === id) {
+                    item.added = true
+                }
+                return item
+            })
+            return {
+                groceryItems: newList
+            }
+        })
+    }
+    render(){
+
+        const ListItems = this.state.groceryItems.map(item => 
+            <ListItem 
+                key={item.id} 
+                item={item}
+                handleClick={this.handleClick}
+                />
+            )
+            
+      const ShoppingCartList = this.state.groceryItems.map(item => 
+            <ShoppingCart key={item.id} item={item}/ >    
+            )
+        
+        return(
+            <div>
+                <ul>
+                    {ListItems}
+                </ul>
+                <ul>
+                    {ShoppingCartList}
+                </ul>
+            </div>
+        )
+    }
+}
+
+export default List
+
+----------------------------------------------------------------
+
+ListItem.js
+
+-----------------------------------------------------
+
+import React from "react"
+
+function ListItem (props){
+    
+    return(
+        <li onClick={()=>props.handleClick(props.item.id)}> {props.item.title}</li>
+    )
+}
+export default ListItem
+
+-----------------------------------------------------
+
+ShoppingCart.js
+
+-----------------------------------------------------
+
+import React from "react"
+
+
+function ShoppingCart(props){
+    if(props.item.added === true){
+         return(
+                <li>{props.item.title}</li>
+            ) 
+    }
+    else{
+        return(
+            <li></li>
+        )
+    }
+}
+
+export default ShoppingCart
+
+-----------------------------------------------------
+
+App.js
+
+-----------------------------------------------------
+
+
+import React from "react"
+import List from "./components/List"
+
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {}
+        
+    }
+    
+
+    
+    render() {
+      
+        
+        return (
+            <div className="todo-list">
+                <List />
+            </div>
+        )    
+    }
+}
+
+export default App
+
+-------------------------------------------------------------
+New and working 
+-------------------------------------------------------------
+
+Container
+----------------------------------------------------------
+
+import React from "react";
+import Header from "./components/Header";
+import GroceryList from "./components/GroceryList";
+import ShoppingCart from "./components/ShoppingCart";
+
+class Container extends React.Component{
+    constructor(){
+        super()
+        this.state = {
+            groceryItems: [
+                {id:1 , title: "Ham" , added: false, amount:0},
+                {id:2 , title: "Cheese", added: false, amount:0},
+                {id:3 , title: "Bread", added: false, amount:0},
+                {id:4 , title: "Deoderant", added: false, amount:0},
+                {id:5 , title: "Beer", added: false, amount:0}
+            ],
+            shoppingListItems: [
+            ],
+        }
+    }
+
+
+    handleClick = id => {
+        this.setState(prevState => {
+        const newList = prevState.groceryItems.map(item => {
+            if (item.id === id) {
+                    item.added = true
+                    item.amount++
+                }
+                return item
+            })
+            const newShoppingList = []
+            prevState.groceryItems.map(item => {
+                if(item.added === true){
+                    newShoppingList.push(item)
+                }
+            })
+           
+            return {
+                groceryItems: newList,
+                shoppingListItems: newShoppingList
+            }
+        })
+    }
+
+    emptyCart = () => {
+        this.setState(prevState => {
+            const turnFalse = prevState.groceryItems.map(item =>{
+                return {
+                   res: item.added = false,
+                   amount: item.amount = 0
+                }
+            })
+            return {
+                shoppingListItems : []
+            }
+        })
+    }
+    
+    
+    addProduct = event => {
+        const product = event.target.previousSibling.previousSibling.value;
+        if(product !== "" && product !== null){
+            this.setState(prevState => {
+                const productID = prevState.groceryItems.length + 1;
+                const productObject = {id: productID, title: product, amount:0};
+                const updatedGroceryList = [productObject, ...prevState.groceryItems];
+                return{
+                    groceryItems: updatedGroceryList,
+                    shoppingListItems: prevState.shoppingListItems,
+                }
+            })
+        } 
+    }
+
+    render(){
+        return(
+            <div className="wrapper">
+                <Header />
+                <div className="content">
+                    <GroceryList 
+                        list={this.state.groceryItems} 
+                        handleClick={this.handleClick} 
+                        addProduct={this.addProduct}
+                    />
+                    <ShoppingCart 
+                        list={this.state.shoppingListItems} 
+                        emptyCart={this.emptyCart}
+                        readonly={true}
+                    />
+                </div>
+            </div>
+        )
+    }
+}
+
+export default Container;
+
+-------------------------------------------------------------
+GroceryList
+
+
+import React from "react";
+import List from "./List";
+import InputField from "./InputField";
+
+function GroceryList(props){
+
+    return(
+        <div>
+            <header >
+                <h2>Grocery List Items</h2>
+                <InputField addProduct={props.addProduct}/>
+            </header>
+            <List items={props.list} handleClick={props.handleClick} />
+        </div>
+    )
+}
+
+export default GroceryList;
+-----------------------------------------------------------
+
+List
+
+import React from "react";
+import ListItem from "./ListItem";
+
+function List(props){
+
+    const list = Array.from(props.items).map(item => {
+        return <ListItem 
+                    key={item.id} 
+                    item={item}
+                    handleClick={props.handleClick}
+                    readonly={props.readonly}
+                />
+    })
+
+    return(
+        <ul>    
+            {list}
+        </ul>
+    )
+}
+
+export default List;
+----------------------------------------------------------
+ListItem
+
+import React from "react";
+
+const ListItem = (props) => {
+
+    const amount = "  Amount:" + "  " + props.item.amount;
+
+    return(
+        <li
+            id={props.item.id}
+            className="list-item"
+            value={props.item.title}
+            onClick={()=> props.handleClick(props.item.id)}
+            >            
+            {props.item.title}
+            <span>
+                {props.readonly ? amount : null}
+            </span>
+        </li>
+    )
+}
+
+export default ListItem;
+
+-----------------------------------------------------------
+ShoppingCart
+
+import React from "react";
+import List from "./List";
+
+function ShoppingCart(props){
+    return(
+        <div>
+            <header>
+                <h2>Shopping Cart</h2>
+                <button onClick={props.emptyCart}>Empty Shopping Cart</button>
+            </header>
+            <List items={props.list} readonly={props.readonly}/>
+        </div>
+    )
+}
+
+export default ShoppingCart;
